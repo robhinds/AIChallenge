@@ -91,6 +91,37 @@ public class MyBot extends Bot {
 			}
 		}
 		
+		//explore unseen areas
+		List<Tile> seen = new ArrayList<Tile>();
+		for (Tile t : unseenLocations){
+			if (ants.isVisible(t)){
+				seen.add(t);
+			}
+		}
+		unseenLocations.remove(seen);
+
+		for (Tile ant : ants.getMyAnts()){
+			if (!orders.containsValue(ant)){
+				List<TileLink> unseenDistances = new ArrayList<TileLink>();
+				for (Tile t : unseenLocations){
+					List<Aim> directions = ants.getDirections(ant, t);
+					int dist = ants.getDistance(ant, t);
+					unseenDistances.add(new TileLink(ant, t, directions, dist));
+				}
+
+				//Sort the list based on distance
+				Collections.sort(unseenDistances);
+
+				// attempt to move ants towards unseen locations
+				for (TileLink t : unseenDistances){
+					if (doMoveTowardsTarget(ant, t.getTargetLog(), orders)){
+						break;
+					}
+				}
+
+			}
+		}
+		
 		//move any remaining ants still on the hill
 		for (Tile hill : ants.getMyHills()){
 			if (ants.getMyAnts().contains(hill) && !orders.containsValue(hill)){

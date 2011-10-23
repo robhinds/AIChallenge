@@ -1,8 +1,13 @@
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Provides basic game state handling.
  */
 public abstract class Bot extends AbstractSystemInputParser {
     private Ants ants;
+    
+    protected List<Tile> unseenLocations = new ArrayList<Tile>();
     
     /**
      * {@inheritDoc}
@@ -12,6 +17,13 @@ public abstract class Bot extends AbstractSystemInputParser {
             int attackRadius2, int spawnRadius2) {
         setAnts(new Ants(loadTime, turnTime, rows, cols, turns, viewRadius2, attackRadius2,
             spawnRadius2));
+        
+        for (int row=0; row<ants.getRows(); row++){
+        	for (int col=0; col<ants.getCols(); col++){
+        		Tile t = new Tile(row, col);
+        		unseenLocations.add(t);
+        	}
+        }
     }
     
     /**

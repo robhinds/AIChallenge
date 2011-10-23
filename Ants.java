@@ -404,4 +404,14 @@ public class Ants {
         System.out.println(order);
         System.out.flush();
     }
+    
+    
+    public boolean isVisible(Tile location){
+    	for (Tile ant : getMyAnts()){
+    		if (getDistance(ant, location)<getViewRadius2()){
+    			return true;
+    		}
+    	}
+    	return false;
+    }
 }

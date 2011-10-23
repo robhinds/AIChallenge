@@ -72,25 +72,91 @@ public class MyBot extends Bot {
 			orders.put(hill, null);
 		}
 
-		//Pass 1 - build a map of all our ants, all the food and the distance between each
-		for (Tile food : ants.getFoodTiles()){
-			for (Tile ant : ants.getMyAnts()){
-				List<Aim> directions = ants.getDirections(ant, food);
-				int dist = ants.getDistance(ant, food);
-				antDistances.add(new TileLink(ant, food, directions, dist));
-			}
-		}
+		//Issue Orders:
+		gatherFood(orders, ants, antDistances);
+		attackEnemyHills(orders, ants);
+		exploreNewTerritory(orders, ants);
+		moveAwayFromHill(orders, ants);
+	}
 
-		//Sort the list based on distance
-		Collections.sort(antDistances);
-		
-		// attempt to move ants towards foods
-		for (TileLink t : antDistances){
-			if (!targets.containsKey(t.getTargetLog()) && !targets.containsValue(t.getCurrentLoc())){
-				doMoveTowardsTarget(t.getCurrentLoc(), t.getTargetLog(), orders);
+
+
+
+	/**
+	 * Method locates all new hills found, then looks for all ants that have not
+	 * yet been given orders (existing orders take priotiry) and calculate the nearest
+	 * hill to each ant
+	 * 
+	 * @param orders
+	 * @param ants
+	 */
+	private void attackEnemyHills(HashMap<Tile, Tile> orders, Ants ants) {
+		//attack hills
+		for (Tile hill : ants.getEnemyHills()){
+			if (!enemyHills.contains(hill)){
+				enemyHills.add(hill);
 			}
 		}
 		
+	    
+		List<TileLink> hillDist = new ArrayList<TileLink>();
+		for (Tile t : enemyHills){
+			for (Tile ant : ants.getMyAnts()){
+				if (!orders.containsValue(ant)){
+					List<Aim> directions = ants.getDirections(ant, t);
+					int dist = ants.getDistance(ant, t);
+					hillDist.add(new TileLink(ant, t, directions, dist));
+				}				
+			}
+		}
+		//Sort the list based on distance
+		Collections.sort(hillDist);
+
+		// attempt to move ants towards unseen locations
+		for (TileLink t : hillDist){
+			if (doMoveTowardsTarget(t.getCurrentLoc(), t.getTargetLog(), orders)){
+				break;
+			}
+		}
+	}
+
+
+
+
+	/**
+	 * In the case that ant is resting on a hill (blocking new ants from spawning)
+	 * then we just move one square away
+	 * 
+	 * Deprecated as we always give all ants orders now (to explore/hunt/gather)
+	 * 
+	 * @param orders
+	 * @param ants
+	 */
+	@Deprecated
+	private void moveAwayFromHill(HashMap<Tile, Tile> orders, Ants ants) {
+		//move any remaining ants still on the hill
+		for (Tile hill : ants.getMyHills()){
+			if (ants.getMyAnts().contains(hill) && !orders.containsValue(hill)){
+				for (Aim dir : Aim.values()){
+					if (doMoveDirection(ants, orders, hill, dir)){
+						break;
+					}
+				}
+			}
+		}
+	}
+
+
+
+
+	/**
+	 * Method establishes locations on the map that have not yet been visited
+	 * and sends available ants to those locations to explore
+	 * 
+	 * @param orders
+	 * @param ants
+	 */
+	private void exploreNewTerritory(HashMap<Tile, Tile> orders, Ants ants) {
 		//explore unseen areas
 		List<Tile> seen = new ArrayList<Tile>();
 		for (Tile t : unseenLocations){
@@ -121,15 +187,37 @@ public class MyBot extends Bot {
 
 			}
 		}
+	}
+
+
+
+
+	/**
+	 * Method calculates the nearest food to each ant (that isnt already being targeted)
+	 * and orders ants to gather food
+	 * 
+	 * @param orders
+	 * @param ants
+	 * @param antDistances
+	 */
+	private void gatherFood(HashMap<Tile, Tile> orders, Ants ants,
+			ArrayList<TileLink> antDistances) {
+		//Pass 1 - build a map of all our ants, all the food and the distance between each
+		for (Tile food : ants.getFoodTiles()){
+			for (Tile ant : ants.getMyAnts()){
+				List<Aim> directions = ants.getDirections(ant, food);
+				int dist = ants.getDistance(ant, food);
+				antDistances.add(new TileLink(ant, food, directions, dist));
+			}
+		}
+
+		//Sort the list based on distance
+		Collections.sort(antDistances);
 		
-		//move any remaining ants still on the hill
-		for (Tile hill : ants.getMyHills()){
-			if (ants.getMyAnts().contains(hill) && !orders.containsValue(hill)){
-				for (Aim dir : Aim.values()){
-					if (doMoveDirection(ants, orders, hill, dir)){
-						break;
-					}
-				}
+		// attempt to move ants towards foods
+		for (TileLink t : antDistances){
+			if (!targets.containsKey(t.getTargetLog()) && !targets.containsValue(t.getCurrentLoc())){
+				doMoveTowardsTarget(t.getCurrentLoc(), t.getTargetLog(), orders);
 			}
 		}
 	}

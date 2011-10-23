@@ -9,6 +9,8 @@ public abstract class Bot extends AbstractSystemInputParser {
     
     protected List<Tile> unseenLocations = new ArrayList<Tile>();
     
+    protected List<Tile> enemyHills = new ArrayList<Tile>();
+    
     /**
      * {@inheritDoc}
      */

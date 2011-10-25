@@ -43,6 +43,8 @@ public class Ants {
     
     private final Set<Order> orders = new HashSet<Order>();
     
+    private ShortestPathService pathService = new ShortestPathService();
+    
     /**
      * Creates new {@link Ants} object.
      * 
@@ -278,11 +280,10 @@ public class Ants {
      * @return distance between <code>t1</code> and <code>t2</code>
      */
     public int getDistance(Tile t1, Tile t2) {
-        int rowDelta = Math.abs(t1.getRow() - t2.getRow());
-        int colDelta = Math.abs(t1.getCol() - t2.getCol());
-        rowDelta = Math.min(rowDelta, rows - rowDelta);
-        colDelta = Math.min(colDelta, cols - colDelta);
-        return rowDelta * rowDelta + colDelta * colDelta;
+    	
+    	pathService.search(t1, t2, getRows(), getCols(), this);
+    	
+        return pathService.getDistance();
     }
     
     /**
